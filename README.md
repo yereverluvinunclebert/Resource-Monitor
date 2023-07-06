@@ -4,6 +4,8 @@ The Resource-Monitor Grid-Gauges Yahoo Widget, written in Javascript and XML for
 Widget (Konfabulator) Engine. Created for XP, Vista, Win7, 8, 10+ as well as the 
 Apple Mac. 
 
+![resource-monitor](https://github.com/yereverluvinunclebert/Resource-Monitor/assets/2788342/739351a4-3ac9-4576-8efa-2845951cd6cb)
+
 The Resource-Monitor Gauges widget is an attractive Steampunk Yahoo widget for 
 your desktop. It is a series of gauges for displaying system metrics from your 
 PC. Functional and gorgeous at the same time. This Widget is a moveable widget 
@@ -14,6 +16,9 @@ designed to appeal to the steampunk mind, I suggest it might be a useful
 addition to your desktop. The resource monitor will allow you to monitor your 
 systemresource on a second by second basis using a human-friendly steampunk 
 interface.
+
+![resource-monitor-help](https://github.com/yereverluvinunclebert/Resource-Monitor/assets/2788342/fd7040ee-7b36-4cd6-b5c0-e15016f0b604)
+
 
 The Widget does NOT run on Windows 10. This is because Microsoft has not yet 
 created the necessary WMI classes on Windows 10 to extract per-cpu information. 

@@ -19,12 +19,6 @@ interface.
 
 ![resource-monitor-help](https://github.com/yereverluvinunclebert/Resource-Monitor/assets/2788342/fd7040ee-7b36-4cd6-b5c0-e15016f0b604)
 
-
-The Widget does NOT run on Windows 10. This is because Microsoft has not yet 
-created the necessary WMI classes on Windows 10 to extract per-cpu information. 
-I am hacking together a fix to remove this functionality from the widget 
-temporarily until MS gets its act together and creates the missing classes.
-
 The Resource Monitor is a Yahoo widget that runs on your desktop behind all your 
 applications so it does not interfere with your day to day computer 
 functionality. It displays cpu, memory, wireless and battery information as well 

@@ -1,0 +1,1225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<widget minimumVersion="4.5">
+	<!--
+	Resource Monitor - Displays system resource usage.
+	Copyright © 2012-2013 Dean Beedell and Harry Whitfield
+
+	This program is free software; you can redistribute it and/or modify it
+	under the terms of the GNU General Public licence as published by the
+	Free Software Foundation; either version 2 of the licence, or (at your
+	option) any later version.
+
+	This program is distributed in the hope that it will be useful, but
+	WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the GNU
+	General Public licence for more details.
+
+	You should have received a copy of the GNU General Public licence along
+	with this program; if not, write to the Free Software Foundation, Inc.,
+	51 Franklin St, Fifth Floor, Boston, MA 02110-1301	USA
+
+	Resource Monitor - version 1.0.4.3
+	4 April, 2013
+	Copyright © 2012-2013 Dean Beedell and Harry Whitfield
+	mailto:g6auc@arrl.net
+	mailto:dean.beedell@lightquick.co.uk
+
+		The MAC multi core warning - make it more friendly altogether.
+		Preference pane dual core - check and modify quad core functionality
+		Hiding the battery gauge on desktops.
+		Add the extra logic for Macs to the showing of the dual and quad core gauges.
+		Add a tooltip toggle or switch
+		Add a disc alert threshold in preferences that the user can change.
+		Tested on 2-core cpus on Vista 32bit - seems OK
+
+		Added core indicator lamps for 2, 4 and 8 core cpus
+		Added code to extract and combine the false processor readings for 4 core, hyper-threaded CPUs
+		Added switchable rotating cog
+		Added some background pipes
+		Test on 4 core windows systems - WIP
+		Removed the bulb glow that was interfering with the wireless gauge valve
+		Added appropriate sounds to a couple of layers
+		Added some preliminary code to check newly-created discs shown on the fly
+
+		Fix remaining tooltips
+		Add unlit indicator lamps to the console.
+		Changed preference variable names to be more consistent
+
+		0.7 Separated out the animation preferences from the general preferences
+		Steampunk icons for the the preference groups
+		Changed "license" text to "licence"
+		Removed call to Windows Instrumentation layer for single core systems
+
+		0.8 Three core processors support including tooltip
+		Option to exclude drives with 0 free and 0 total bytes (unmounted)
+		exclude drives preference chosen causes recount of drives and toggle count set accordingly
+		interval timer not set correctly on startup bug fixed.
+
+		0.9 Add some calls to run task manager on cpu click
+		Add some calls to run performance manager on core gauge click
+		Add some calls to run power manager on battery gauge click
+		Add some calls to run network manager on wireless gauge click
+		Add some calls to run disc administrative tools on disc gauges click
+
+		1.0 Fix the core indicator bulbs 2, 4 and 8, now only shows one
+		the pop up help must be above the bulbs regardless of screen size
+		the disc toggle was not present when the widget was loaded for the first time - fixed
+		allow the battery stanchion to be removed when no battery is present
+		when the batt gauge is displayed on a desktop device with no battery the lamps should be correctly lit
+		tested on Windows 7 ultimate 64 bit
+		tested on quad core hyper threaded
+		add calls to the appropriate Mac utilities
+		added all the piping and wires to the pipeset so the widget can be run barebones
+		added preference to allow the console to be open or shut
+		added code to select the appropriate pop-up screen when a gauge is double-clicked
+
+		1.0.1 
+
+		added front slider to control the closing or shutting of the front drive console
+		added front slider to control the display of mounted/unmounted drives.
+		added cog rotation to all toggles
+		add tooltips to front sliders
+		added indents for the two sliding toogles, T & M
+
+		Some extra pop-screens dependant upon which utility called, vmap and network traffic for windows
+		add crank for virtual memory gauge
+		create virtual memory gauge
+		modify startup to display the front sliders in the correct position
+		added bulbs for virtual manager threshold exceeded
+		added threshold in the prefs
+
+						-oOo-
+
+		1.0.2
+
+		bulbglow opacity reduced to zero, no longer glows on a machine not equipped with wireless
+		added images to the mail and web button presses
+		matched the toggle_count to the number of drives shown
+		added pop up messages when you click on any of the web assistance buttons
+		double click on the virtual memory gauge brings up a utility defined in the preferences
+		hopefully fixed any issues where drives aren't showing...
+		on startup a bulb glow displays immediately if a wireless network is activated
+		size slider no longer jumps to the right when first clicked upon
+		changed vertical slider preferences to drop-downs in the back end as YWE for Windows has a bug with slider ticks
+		fixed vertical slider start up positions
+
+						-oOo-
+
+		1.0.3
+
+                Pop up consoles now disappear when sound is muted
+                Fixed bug where more than 6 drives would cause an "Object has no properties" error.
+                Fixed bug where more than 6 drives would cause the drive toggle to disappear.
+                Added flashing battery indicator lamp when threshold is reached.
+                Added relay clicking sound to flashing battery indicator lamp.
+                Added new preference group for battery configuration.
+                Reordered the preference groups and the items in the groups
+                Added battery threshold in the preferences for the alarm
+
+						-oOo-
+		
+		1.0.4
+		
+		Cross-platform network code incorporated using NETSTAT Files
+                network gauge based upon NETSTAT information
+               	right click menu on wireless-hand to select a network adapter
+                identify the current and total bandwidth on a chosen ethernet adapter - not done
+
+						-oOo-
+		
+		1.0.5 - Yet to be Done
+		all gauges should be enabled on first start - check that is the case
+                improved graphics on the bottom pipeset taps - WIP
+		Multicore support for Macs
+		flags and sounds for alarms
+		hand crank for flags
+		another rotating cog
+		smooth animation of network gauge?
+		use of scrollwheel to move the size slider
+	-->
+	 
+	<settings>
+		<setting name="debug" value="off"/>
+	</settings>
+
+	<about-box>
+		<image>Resources/About.png</image>
+		<about-text font="Times New Roman" color="#000000" vOffset="95" hOffset="121" data="Version" size="10"/>
+		<about-version font="Times New Roman" color="#000000" vOffset="95" hOffset="158" size="10"/>
+	</about-box>
+	<window visible="true" name="flash_window" level = "2" width="898"  title="flash window" height="640" shadow="false">
+		<image opacity="255" vOffset="250 " zorder = "25" name="flash" src="Resources/flash.png" hOffset="1 " visible="false"/>
+	</window>
+
+	<window visible="false" vOffset="300" level = "1" name="mainWindow" width="1528" hOffset="300" title="Resource Monitor" height="1428" shadow="false">
+		<image hRegistrationPoint="98" zOrder="3" visible="true" rotation="-117" opacity="255" vRegistrationPoint="120" vOffset="1240" name="wireless_hand" src="Resources/small-hand.png" width="192" hOffset="1165" height="234"/>
+		<image opacity="255" name="stanchion" src="Resources/stanchion.png">
+			<onMouseDown>
+				<![CDATA[
+                                if (preferences.soundPref.value === "enable") {
+                                   play(sparks, false)
+                                };
+                                if (preferences.sparkPref.value === "enable") {
+                                    if (preferences.soundPref.value === "enable") {
+                                       play(shutdown, false)
+                                    };
+                                     preferences.sparkPref.value = "disable";
+                                } else {
+                                    if (preferences.soundPref.value === "enable") {
+                                       play(electricDrone, false)
+                                    };
+                                     preferences.sparkPref.value = "enable";
+                                }
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="false" opacity="255" vOffset="1351" name="drip" src="Resources/drip.png" hOffset="130">
+			<onMouseDown>
+				<![CDATA[
+				drip.visible = false;
+				]]>
+			</onMouseDown>
+		</image>
+		<image opacity="255" vOffset="444" name="cpuTap" src="Resources/cpuTap.png" hOffset="118">
+			<onMouseDown>
+				<![CDATA[
+				cpuswitch();
+				]]>
+			</onMouseDown>
+		</image>
+		<image opacity="255" vOffset="518 " name="connectingpipes" src="Resources/connectingpipes.png" hOffset="163 "/>
+		<image opacity="255" vOffset="815" name="cog2" src="Resources/cog.png" hOffset="1095"/>
+		<image opacity="255" vOffset="1 " name="pipeSet" src="Resources/pipeSet.png" hOffset="199 "/>
+		<image opacity="255" vOffset="815" name="cog" src="Resources/cog.png" hOffset="1095"/>
+		<image opacity="255" vOffset="444" name="ampsTap" src="Resources/ampsTap.png" hOffset="1043">
+			<onMouseDown>
+				<![CDATA[
+				if (amps.visible === true) {
+					battswitch();
+				} else {
+					virtswitch();
+				}
+				]]>
+			</onMouseDown>
+		</image>
+		<image opacity="255" name="crankup" src="Resources/crank-up.png">
+			<onMouseDown>
+				<![CDATA[
+				switchvirtmemorbatt();
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="false" opacity="255" name="crankdown" src="Resources/crank-down.png">
+			<onMouseDown>
+				<![CDATA[
+				switchvirtmemorbatt();
+				]]>
+			</onMouseDown>
+		</image>
+		<image opacity="255" vOffset="1173" name="maintap" src="Resources/maintap.png" hOffset="100">
+			<onMouseDown>
+				<![CDATA[
+				drip.visible = true;
+				]]>
+			</onMouseDown>
+		</image>
+		<image opacity="255" vOffset="1078" name="wifiTap" src="Resources/wifiTap.png" hOffset="1234">
+			<onMouseDown>
+				<![CDATA[
+				wirelessswitch();
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="true" opacity="255" vOffset="1257" name="redTap1" src="Resources/redTap1.png" hOffset="378">
+			<onMouseDown>
+				<![CDATA[
+				redTap1.rotation=redTap1.rotation + 16;
+				if (preferences.soundPref.value === "enable") {
+					puffit();
+				}
+				if (preferences.core0and1switchPref.value === "on") {
+					preferences.core0and1switchPref.value = "off";
+					if (preferences.tooltipswitchPref.value === "enable") {
+						redTap1.tooltip = "individual core monitoring is switched OFF";
+					} else {
+						redTap1.tooltip = "";
+					}
+				} else {
+					preferences.core0and1switchPref.value = "on";
+					if (preferences.tooltipswitchPref.value === "enable") {
+						redTap1.tooltip = "individual monitoring is switched ON";
+					} else {
+						redTap1.tooltip = "";
+					}
+				}
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="true" opacity="255" vOffset="1257" name="redTap2" src="Resources/redTap1.png" hOffset="681">
+			<onMouseDown>
+				<![CDATA[
+				redTap2.rotation=redTap2.rotation - 16;
+				if (preferences.soundPref.value === "enable") {
+					puffit();
+				}
+				if (preferences.core2and3switchPref.value === "on") {
+					preferences.core2and3switchPref.value = "off";
+					if (preferences.tooltipswitchPref.value === "enable") {
+						redTap2.tooltip = "individual core monitoring is switched OFF";
+					} else {
+						redTap2.tooltip = "";
+					}
+				} else {
+					preferences.core2and3switchPref.value = "on";
+					if (preferences.tooltipswitchPref.value === "enable") {
+						redTap2.tooltip = "individual monitoring is switched ON";
+					} else {
+						redTap2.tooltip = "";
+				}
+
+			}
+			]]>
+			</onMouseDown>
+		</image>
+		<image visible="true" opacity="255" vOffset="1257" name="redTap3" src="Resources/redTap1.png" hOffset="951">
+			<onMouseDown>
+				<![CDATA[
+				redTap3.rotation=redTap3.rotation + 16;
+				if (preferences.soundPref.value === "enable") {
+					puffit();
+				}
+				if (bulbglow.visible === true) {
+					bulb.visible = false;
+					bulbglow.visible = false;
+					if (preferences.soundPref.value === "enable") {
+						play(suck,false);
+					}
+				} else {
+					if (preferences.soundPref.value === "enable") {
+						play(zzzz,false);	}
+						bulb.visible = true;
+						bulbglow.visible = true;
+				}
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="true" opacity="255" vOffset="749" name="togglemute" src="Resources/toggle-mute.png" hOffset="1206">
+			<onMouseDown>
+				<![CDATA[
+				muteswitch();
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="true" opacity="255" vOffset="839" name="toggleconfig" src="Resources/toggle-config.png" hOffset="1206">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(clunk,false);
+				}
+				cog.rotation = cog.rotation + cogrotation;
+				showWidgetPreferences();
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="true" opacity="255" vOffset="919" name="toggleabout" src="Resources/toggle-about.png" hOffset="1206">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(clunk,false);
+				}
+				about.visible = true;
+				cog.rotation = cog.rotation + cogrotation;
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="true" opacity="255" vOffset="1009" name="togglehelp" src="Resources/toggle-help.png" hOffset="1206">
+			<onMouseDown>
+				<![CDATA[
+				helppressed();
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="true" opacity="255" vOffset="1029" name="toggletooltip" src="Resources/toggle-tooltips.png" hOffset="1206">
+			<onMouseDown>
+				<![CDATA[
+				tooltipswitch();
+				checktooltips();
+				driveCounter = 0;
+				sample();
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="true" opacity="255" vOffset="500" name="togglesmooth" src="Resources/smooth-animation-toggle.png" hOffset="350">
+			<onMouseDown>
+				<![CDATA[
+				animateswitch();
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="false" opacity="255" vOffset="659" name="toggle6" src="Resources/toggle6.png" hOffset="1206">
+			<onMouseDown>
+				<![CDATA[
+				presstoggle();
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="false" opacity="255" vOffset="659" name="toggle5" src="Resources/toggle5.png" hOffset="1206">
+			<onMouseDown>
+				<![CDATA[
+				presstoggle();
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="false" opacity="255" vOffset="659" name="toggle4" src="Resources/toggle4.png" hOffset="1206">
+			<onMouseDown>
+				<![CDATA[
+				presstoggle();
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="false" opacity="255" vOffset="659" name="toggle3" src="Resources/toggle3.png" hOffset="1206">
+			<onMouseDown>
+				<![CDATA[
+				presstoggle();
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="false" opacity="255" vOffset="659" name="toggle2" src="Resources/toggle2.png" hOffset="1206">
+			<onMouseDown>
+				<![CDATA[
+				presstoggle();
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="false" opacity="255" vOffset="659" name="toggle1" src="Resources/toggle1.png" hOffset="1206">
+			<onMouseDown>
+				<![CDATA[
+				presstoggle();
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="false" opacity="255" vOffset="1126" name="toggleback" src="Resources/toggle-back.png" hOffset="160">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(clunk,false);
+				}
+				if (helpback.visible === true) {
+					helpback.visible = false;
+				} else {
+					helpback.visible = true;
+				}
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="false" opacity="255" vOffset="1116" name="helpback" src="Resources/helpback.png" hOffset="169">
+			<onMouseDown>
+				<![CDATA[
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="false" opacity="255" vOffset="1116" name="helpscreen" src="Resources/helpscreen.png" hOffset="169">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(TingingSound,false);
+				}
+				if (helpback.visible === true) {
+					bighelp.visible = true;
+				}
+				]]>
+			</onMouseDown>
+		</image>
+		<image opacity="255" vOffset="1292 " name="cableTrough" src="Resources/cableTrough.png" hOffset="237 "/>
+		<image vOffset="230" name="bellpushes" src="Resources/nogaugeplate.png" hOffset="690">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(clunk,false);
+				}
+				if (bellpushes.src=="Resources/nogaugeplate.png") {
+					bellpushes.src="Resources/gaugeplate.png";
+					bellpushupdate.visible = true;
+					bellpushhelp.visible = true;
+					bellpushmail.visible = true;
+				} else {
+					bellpushes.src="Resources/nogaugeplate.png";
+					bellpushupdate.visible = false;
+					bellpushhelp.visible = false;
+					bellpushmail.visible = false;
+				}
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="false" vOffset="240" name="bellpushmail" src="Resources/bellpush-mail.png" hOffset="700">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(buzzer,false);
+				}
+				bellpushmail.src="Resources/bellpushed-mail.png";
+				]]>
+			</onMouseDown>
+			<onMouseUp>
+				<![CDATA[
+				bellpushmail.src="Resources/bellpush-mail.png";
+				var answer = alert("This button opens an email window, are you sure you want to do this?", "Open Email Window", "No Thanks");
+				if (answer === 1) {
+					openURL("mailto:dean.beedell@lightquick.co.uk");
+					taskmanager.src = "Resources/envelope.png";
+					performPress();
+				}
+				]]>
+			</onMouseUp>
+		</image>
+		<image visible="false" vOffset="240" name="bellpushupdate" src="Resources/bellpush-update.png" hOffset="700">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(buzzer,false);
+				}
+				bellpushupdate.src="Resources/bellpushed-update.png";
+				]]>
+			</onMouseDown>
+			<onMouseUp>
+				<![CDATA[
+				bellpushupdate.src="Resources/bellpush-update.png";
+				var answer = alert("This button opens a browser window and connects to the download site so you may download a new version of the widget, are you sure you want to do this?", "Open Browser Window", "No Thanks");
+				if (answer === 1) {
+					openURL("http://lightquick.co.uk/downloads/steampunk-resource-monitor-widget.html?Itemid=264");
+					taskmanager.src = "Resources/download.png";
+					performPress();
+				}
+				]]>
+			</onMouseUp>
+		</image>
+		<image visible="false" vOffset="240" name="bellpushhelp" src="Resources/bellpush-help.png" hOffset="700">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(buzzer,false);
+				}
+				bellpushhelp.src="Resources/bellpushed-help.png";
+				]]>
+			</onMouseDown>
+			<onMouseUp>
+				<![CDATA[
+				bellpushhelp.src="Resources/bellpush-help.png";
+				var answer = alert("This button opens a browser window and connects to the help page for this widget on the developer's site. Are you sure you want to do this?", "Open Browser Window", "No Thanks");
+				if (answer === 1) {
+					 openURL("http://lightquick.co.uk/instructions-for-the-steampunk-resource-monitor.html");
+					 taskmanager.src = "Resources/web.png";
+					 performPress();
+				}
+				]]>
+			</onMouseUp>
+		</image>
+		<image visible="true" opacity="255" name="driveConsole" src="Resources/driveConsole.png"/>
+		<image visible="true" opacity="255" name="consoleslider" src="Resources/frontslider.png"/>
+		<image visible="true" opacity="255" vOffset="809" name="consoleknob" src="Resources/knob.png" hOffset="158">
+			<onMouseDown>
+				<![CDATA[
+				console();
+				]]>
+			</onMouseDown>
+			<tooltip>"show/hide drive console"</tooltip>
+		</image>
+		<image visible="true" opacity="255" name="driveslider" src="Resources/frontslider.png"/>
+		<image visible="true" opacity="255" name="driveknob" src="Resources/knob.png">
+			<onMouseDown>
+				<![CDATA[
+				if ( preferences.showUnmountedPref.value=="disable") {
+					preferences.showUnmountedPref.value="enable";
+					driveknob.hOffset = (855 ) * scaleit;
+					driveknob.tooltip	= "hide unmounted drives";
+				} else {
+					preferences.showUnmountedPref.value="disable";
+					driveknob.hOffset = (855 + 140) * scaleit;
+					driveknob.tooltip	= "show unmounted drives";
+				}
+				if (preferences.soundPref.value === "enable") {
+					play(clunk,false);
+				}
+				cog.rotation = cog.rotation + cogrotation;
+				driveCounter = 0;
+				countdrives();
+				sample();
+				displayToggleCount();
+				]]>
+			</onMouseDown>
+			<tooltip>"show/hide unmounted drives"</tooltip>
+		</image>
+		<image opacity="255" vOffset="1300 " name="cable" src="Resources/cable.png" hOffset="630 "/>
+		<image visible="false" opacity="255" vOffset="809" name="core0gauge" src="Resources/wireless.png" hOffset="158">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(TingingSound,false);
+				}
+				if (system.platform !== "windows") {
+					macpopupplaque.visible=true;
+					macpopupplaque.zorder = 8;
+				}
+				]]>
+			</onMouseDown>
+			<onMultiClick>
+				<![CDATA[
+				if (system.event.clickCount === 2) {
+					doubleClick();
+				}
+				taskcommand = preferences.perfmonCmdPref.value;
+				taskmanager.src = "Resources/task-manager.png";
+				performCommand();
+				]]>
+			</onMultiClick>
+		</image>
+		<image visible="false" opacity="255" vOffset="939" name="core1gauge" src="Resources/wireless.png" hOffset="1312">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(TingingSound,false);
+				}
+				if (system.platform !== "windows") {
+					macpopupplaque.visible=true;
+					 macpopupplaque.zorder = 8;
+				}
+				]]>
+			</onMouseDown>
+			<onMultiClick>
+				<![CDATA[
+				if (system.event.clickCount === 2) {
+					doubleClick();
+				}
+				taskcommand = preferences.perfmonCmdPref.value;
+				taskmanager.src = "Resources/perfmgr.png";
+
+				performCommand();
+				]]>
+			</onMultiClick>
+		</image>
+		<image visible="false" opacity="255" vOffset="939" name="core2gauge" src="Resources/wireless.png" hOffset="1612">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(TingingSound,false);
+				}
+				if (system.platform !== "windows") {
+					macpopupplaque.visible=true;
+					macpopupplaque.zorder = 8;
+				}
+				]]>
+			</onMouseDown>
+			<onMultiClick>
+				<![CDATA[
+				if (system.event.clickCount === 2) {
+					doubleClick();
+				}
+				taskcommand = preferences.perfmonCmdPref.value;
+				taskmanager.src = "Resources/perfmgr.png";
+				performCommand();
+				]]>
+			</onMultiClick>
+		</image>
+		<image visible="false" opacity="255" vOffset="939" name="core3gauge" src="Resources/wireless.png" hOffset="1612">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(TingingSound,false);
+				}
+				if (system.platform !== "windows") {
+					macpopupplaque.visible=true;
+					macpopupplaque.zorder = 8;
+				}
+				]]>
+			</onMouseDown>
+			<onMultiClick>
+				<![CDATA[
+				if (system.event.clickCount === 2) {
+					doubleClick();
+				}
+				taskcommand = preferences.perfmonCmdPref.value;
+				taskmanager.src = "Resources/perfmgr.png";
+				performCommand();
+				]]>
+			</onMultiClick>
+		</image>
+		<image opacity="255" zorder="1" vOffset="300 " name="bulb" src="Resources/bulb.png" hOffset="373 "/>
+		<image visible="true" opacity="0" zorder="2" vOffset="300" name="bulbglow" src="Resources/bulb-glow.png" hOffset="373">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(zzzz,false);
+				}
+				]]>
+			</onMouseDown>
+		</image>
+		<image hRegistrationPoint="98" visible="false" rotation="-117" opacity="255" vRegistrationPoint="120" vOffset="1240" name="core0gaugehand" src="Resources/small-hand.png" width="192" hOffset="1165" height="234"/>
+		<image hRegistrationPoint="98" visible="false" rotation="-117" opacity="255" vRegistrationPoint="120" vOffset="1240" name="core1gaugehand" src="Resources/small-hand.png" width="192" hOffset="1165" height="234"/>
+		<image hRegistrationPoint="98" visible="false" rotation="-117" opacity="255" vRegistrationPoint="120" vOffset="1240" name="core2gaugehand" src="Resources/small-hand.png" width="192" hOffset="1165" height="234"/>
+		<image hRegistrationPoint="98" visible="false" rotation="-117" opacity="255" zorder="5" vRegistrationPoint="120" vOffset="1240" name="core3gaugehand" src="Resources/small-hand.png" width="192" hOffset="1165" height="234"/>
+		<image visible="false" opacity="255" vOffset="709" name="clipboard" src="Resources/clipboard.png" hOffset="1312">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(TingingSound,false);
+				}
+				clipboard.visible= false;
+				core3gaugehand.visible = true;
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="true" opacity="255" zorder="2" vOffset="1109" name="wireless" src="Resources/wireless.png" hOffset="1028">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(TingingSound,false);
+				}
+				]]>
+			</onMouseDown>
+			<onMultiClick>
+				<![CDATA[
+				if (system.event.clickCount === 2) {
+					doubleClick();
+				}
+				taskcommand = preferences.wirelessCmdPref.value;
+				taskmanager.src = "Resources/network-popup.png";
+				performCommand();
+				]]>
+			</onMultiClick>
+		</image>
+		<image opacity="255" vOffset="134" name="memgauge" src="Resources/mem.png" hOffset="497">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(TingingSound,false);
+				}
+				]]>
+			</onMouseDown>
+			<onMultiClick>
+				<![CDATA[
+				if (system.event.clickCount === 2) {
+					doubleClick();
+				}
+				taskcommand = preferences.memoryCmdPref.value;
+				taskmanager.src = "Resources/vmap-popup.png";
+				performCommand();
+				]]>
+			</onMultiClick>
+		</image>
+		<image opacity="255" vOffset="103" name="cpugauge" src="Resources/cpu.png" hOffset="134">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(TingingSound,false);
+				}
+				singleClick();
+				]]>
+			</onMouseDown>
+			<onMultiClick>
+				<![CDATA[
+				if (system.event.clickCount === 2) {
+					doubleClick();
+				}
+				taskcommand = preferences.taskmgrCmdPref.value;
+				taskmanager.src = "Resources/task-manager.png";
+				performCommand();
+				]]>
+			</onMultiClick>
+		</image>
+		<image opacity="255" vOffset="96" name="amps" src="Resources/amps.png" hOffset="741">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(TingingSound,false);
+				}
+				]]>
+			</onMouseDown>
+			<onMultiClick>
+				<![CDATA[
+				if (system.event.clickCount === 2) {
+					doubleClick();
+				}
+				taskcommand = preferences.ampsCmdPref.value;
+				taskmanager.src = "Resources/task-manager.png";
+				performCommand();
+				]]>
+			</onMultiClick>
+		</image>
+		<image visible="false" opacity="255" name="virtmem" src="Resources/virtmem.png">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(TingingSound,false);
+				}
+				]]>
+			</onMouseDown>
+			<onMultiClick>
+				<![CDATA[
+				if (system.event.clickCount === 2) {
+					doubleClick();
+				}
+				if ( preferences.virtampsPref.value === "virt") {
+					taskcommand = preferences.virtCmdPref.value;
+					taskmanager.src = "Resources/vmap-popup.png";
+					performCommand();
+				}
+				]]>
+			</onMultiClick>
+		</image>
+		<image hRegistrationPoint="43" opacity="255" vRegistrationPoint="43" vOffset="377" name="memTap" src="Resources/memTap.png" hOffset="631">
+			<onMouseDown>
+				<![CDATA[
+				memTap.rotation = memTap.rotation -17;
+				memswitch();
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="true" opacity="255" vOffset="439 " name="virtmemcurrindicator" src="Resources/indicatorGreen.png" hOffset="1054 "/>
+		<image visible="true" opacity="255" vOffset="439 "visible="false"  name="virtmemexceedindicator" src="Resources/indicatorGreen.png" hOffset="914 "/>
+		<image visible="false" opacity="255" vOffset="439 " name="chargingindicatorGreen" src="Resources/indicatorGreen.png" hOffset="1054 "/>
+		<image visible="false" opacity="255" vOffset="439 " name="chargingindicatorAmber" src="Resources/indicatorAmber.png" hOffset="1054 "/>
+		<image visible="false" opacity="255" vOffset="439 " name="batteryindicatorRed" src="Resources/indicatorRed.png" hOffset="914 "/>
+		
+		<image visible="true" opacity="255" vOffset="1295" name="wirelessindicatorLeft"  src="Resources/indicatorOff.png" hOffset="1107" zOrder="2" />
+		<image visible="true" opacity="255" vOffset="1295" name="wirelessindicatorRight" src="Resources/indicatorOff.png" hOffset="1200" zOrder="2" />
+
+		<image visible="false" opacity="255"  visible="true" vOffset="439 " name="batteryindicatorGreen" src="Resources/indicatorGreen.png" hOffset="914 "/>
+		<image hRegistrationPoint="138" visible="true" zOrder="2" opacity="255" rotation="-64" vRegistrationPoint="108" vOffset="332" tooltip="" name="large_hand" src="Resources/large-hand.png" width="221" hOffset="371" height="206"/>
+		<image hRegistrationPoint="98" visible="true" zOrder="2" opacity="255" rotation="-67" vRegistrationPoint="120" vOffset="206" tooltip="" name="small_hand" src="Resources/small-hand.png" width="192" hOffset="672" height="234"/>
+		<image hRegistrationPoint="768" visible="true" zOrder="2" opacity="255" rotation="-64" vRegistrationPoint="108" vOffset="332" tooltip="" name="batt_hand" src="Resources/large-hand.png" width="221" hOffset="1001" height="206"/>
+		<image hRegistrationPoint="768" visible="true" zOrder="2" opacity="255" rotation="-64" vRegistrationPoint="108" vOffset="332" tooltip="" name="virt_hand" src="Resources/large-hand.png" width="221" hOffset="1001" height="206"/>
+		<text visible="true" zOrder="2" font="Arial" opacity="144" color="#000000" vOffset="473" name="cpuText" bgColor="#FFFFFF" width="80" style="text-align: center" hOffset="374" hAlign="center" data="000" height="48" bgOpacity="0" size="40"/>
+		<text visible="false" zOrder="2" font="Arial" opacity="144" color="#000000" vOffset="473" name="core0Text" bgColor="#FFFFFF" width="80" style="text-align: center" hOffset="374" hAlign="center" data="000" height="48" bgOpacity="0" size="40"/>
+		<text visible="false" zOrder="2" font="Arial" opacity="144" color="#000000" vOffset="473" name="core1Text" bgColor="#FFFFFF" width="80" style="text-align: center" hOffset="374" hAlign="center" data="000" height="48" bgOpacity="0" size="40"/>
+		<text visible="false" zOrder="2" font="Arial" opacity="144" color="#000000" vOffset="473" name="core2Text" bgColor="#FFFFFF" width="80" style="text-align: center" hOffset="374" hAlign="center" data="000" height="48" bgOpacity="0" size="40"/>
+		<text visible="false" zOrder="2" font="Arial" opacity="144" color="#000000" vOffset="473" name="core3Text" bgColor="#FFFFFF" width="80" style="text-align: center" hOffset="374" hAlign="center" data="000" height="48" bgOpacity="0" size="40"/>
+		<text visible="true" zOrder="2" font="Arial" opacity="144" color="#000000" vOffset="295" name="memText" bgColor="#FFFFFF" width="80" style="text-align: center" hOffset="675" hAlign="center" data="000" height="48" bgOpacity="0" size="40"/>
+		<text visible="true" zOrder="2" font="Arial" opacity="100" color="#000000" vOffset="473" name="battText" bgColor="#FFFFFF" width="80" style="text-align: center" hOffset="1000" hAlign="center" data="000" height="48" bgOpacity="0" size="40"/>
+		<text visible="false" zOrder="2" font="Arial" opacity="100" color="#000000" vOffset="473" name="virtText" bgColor="#FFFFFF" width="80" style="text-align: center" hOffset="1000" hAlign="center" data="000" height="48" bgOpacity="0" size="40"/>
+		<text visible="true" zOrder="2" font="Arial" opacity="144" color="#000000" vOffset="1065" name="wirelessText" bgColor="#FFFFFF" width="70" style="text-align: center" hOffset="1423" hAlign="center" data="000" height="30" bgOpacity="0" size="30"/>
+		<image visible="true" opacity="0" vOffset="400" name="puff" src="Resources/puff.png" width="150" hOffset="700" height="150">
+			<tooltip></tooltip>
+		</image>
+		<image opacity="255" vOffset="3 " name="leftBar" src="Resources/leftBar.png" hOffset="81 "/>
+		<image opacity="255" vOffset="3 " name="rightBar" src="Resources/rightBar.png" hOffset="41 "/>
+		<image vOffset="92" name="sliderRight" src="Resources/sliderRight.png" hOffset="67">
+			<onMouseDown>
+				<![CDATA[
+				IntervalSliderMouseDown();
+				sizeText.visible= true;
+				sizeText.data =	preferences.timerPref.value + "secs";
+				counter.visible=true;
+				]]>
+			</onMouseDown>
+			<onMouseDrag>
+				<![CDATA[
+				IntervalSliderDrag();
+				]]>
+			</onMouseDrag>
+			<onMouseUp>
+				<![CDATA[
+				IntervalSliderMouseUp();
+				 //sizeText.visible= false;
+				 //counter.visible=false;
+				]]>
+			</onMouseUp>
+		</image>
+		<image vOffset="92" name="sliderLeft" src="Resources/sliderLeft.png" hOffset="37">
+			<onMouseDown>
+				<![CDATA[
+				AnimationSliderMouseDown();
+				sizeText.visible= true;
+				sizeText.data =	preferences.animationPref.value + "ms";
+				counter.visible=true;
+				]]>
+			</onMouseDown>
+			<onMouseDrag>
+				<![CDATA[
+				AnimationSliderDrag();
+				]]>
+			</onMouseDrag>
+			<onMouseUp>
+				<![CDATA[
+				AnimationSliderMouseUp();
+				//sizeText.visible= false;
+				//counter.visible=false;
+				]]>
+			</onMouseUp>
+		</image>
+		<image vOffset="1030" name="bellpush" src="Resources/bellpush.png" hOffset="890">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(buzzer,false);
+				}
+				bellpush.visible= false;
+				bellpushed.visible= true;
+				//if (preferences.soundPref.value === "enable") {
+				//	play(suck,false);
+				//}
+				]]>
+			</onMouseDown>
+			<onMouseUp>
+				<![CDATA[
+				bellpush.visible= true;
+				bellpushed.visible= false;
+				preferences.scalePref.value = perc;
+				scaleTheWidget(Number(preferences.scalePref.value) / 100);
+				counter.visible=false;
+				sizeText.visible=false;
+				]]>
+			</onMouseUp>
+		</image>
+		<image visible="false" vOffset="1030" name="bellpushed" src="Resources/bellpushed.png" hOffset="890"/>
+		<frame onMouseWheel="sliderSetOnMouseWheel(event.scrollDelta);" name="myFrame">
+		       <image opacity="255" vOffset="1292 " name="sliderbar" src="Resources/sliderbar.png" hOffset="237 "/>
+      		       <image vOffset="1292" name="sliderset" src="Resources/sliderset.png" hOffset="237">
+      			      <onMouseDown>
+      				<![CDATA[
+      				sizeSliderMouseDown();
+      				sizeText.visible= true;
+      				counter.visible=true;
+      				sizeText.visible=true;
+      				]]>
+      			</onMouseDown>
+      			<onMouseDrag>
+      				<![CDATA[
+      				sliderSetOnMouseMove();
+      				]]>
+      			</onMouseDrag>
+      			<onMouseUp>
+      				<![CDATA[
+      				sizeSliderMouseUp();
+      				//sizeText.visible= false;
+      				]]>
+      			</onMouseUp>
+      		    </image>
+		</frame>    
+		<image visible="false" opacity="255" zorder="5" vOffset="20" name="about" src="Resources/About.png" hOffset="20">
+			<onMouseDown>
+				<![CDATA[
+				about.visible = false;
+				if (preferences.soundPref.value === "enable") {
+					puffit();
+				}
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="false" opacity="255" zorder="5" name="counter" src="Resources/counter.png" width="446" height="221" halign="center">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(suck,false);
+				}
+				counter.visible=false;
+				sizeText.visible=false;
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="false" opacity="255" zorder="8" vOffset="20" name="macpopupplaque" src="Resources/macpopupplaque.png" width="236" hOffset="220" height="216" halign="center">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(suck,false);
+				}
+				macpopupplaque.visible=false;
+				]]>
+			</onMouseDown>
+		</image>
+		<image visible="false" opacity="255" zorder="9" vOffset="639 " name="core2indicator" src="Resources/indicatorGreen.png" hOffset="854 "/>
+		<image visible="false" opacity="255" zorder="9" vOffset="639 " name="core4indicator" src="Resources/indicatorGreen.png" hOffset="854 "/>
+		<image visible="false" opacity="255" zorder="9" vOffset="639 " name="core8indicator" src="Resources/indicatorGreen.png" hOffset="854 "/>
+		<image visible="false" opacity="255" zorder="9" vOffset="439 " tooltip="Running specified utility - please wait" name="taskmanager" src="Resources/task-manager.png" hOffset="654 "/>
+		<image visible="false" opacity="255" zorder="5" name="bighelp" src="Resources/helpback.png" width="1042" height="836" halign="center">
+			<onMouseDown>
+				<![CDATA[
+				if (preferences.soundPref.value === "enable") {
+					play(suck,false);
+				}
+				bighelp.visible = false;
+				]]>
+			</onMouseDown>
+		</image>
+		<text visible="false" zOrder="6" font="Times New Roman" opacity="255" color="#ffffff" vOffset="450" name="sizeText" bgColor="#FFFFFF" width="80" style="text-align: center" hOffset="374" hAlign="center" data="000" height="48" bgOpacity="0" size="40"/>
+	</window>
+
+   <prefGroup name="development" order="8" icon="Resources/development-icon.png" title="Development"/>
+   <preference hidden="false" description="Turning on the debugging will provide extra information in the debug window. To obtain the debug window press SHIFT+CTRL simultaneously whilst right clicking on the Yahoo widget systray icon, then select debug from the drop down menu. You will need to restart the widget properly rather than doing a simple restart for debugging information to appear." name="debugflgPref" group="development" title="Debug:" defaultValue="1" type="popup">
+        <option>Debug OFF</option>
+        <optionValue>0</optionValue>
+        <option>Debug ON</option>
+        <optionValue>1</optionValue>
+    </preference>
+   <preference hidden="false" description="Default command to run when the gauge receives a double-click. %SystemRoot%/system32/perfmon.exe" name="imageCmdPref" group="development" title="Double-Click command" defaultValue="%SystemRoot%/system32/perfmon.exe" type="text"/>
+   <preference hidden="false" description="Development ONLY: Enter your editor path here along with any command line switches required to open this widget in the editor. This function only operates if the widget has been unpacked and DEBUG is ON. " name="imageEditPref" group="development" title="Default Editor:" defaultValue="" type="text"/>
+   
+	<prefGroup name="general" order="1" icon="Resources/general-icon.png" title="General"/>
+	<prefGroup name="animation" order="2" icon="Resources/animation-icon.png" title="Animation"/>
+	<prefGroup name="cpugauges" order="3" icon="Resources/other-gauges-icon.png" title="CPU Gauges"/>
+	<prefGroup name="drives" order="5" icon="Resources/drive-icon.png" title="Drives"/>
+	<prefGroup name="memory" order="6" icon="Resources/cpu-icon.png" title="Memory"/>
+	<prefGroup name="network" order="7" icon="Resources/commands-icon.png" title="Networks"/>
+	<prefGroup name="battery" order="8" icon="Resources/vertical-tube-icon.png" title="Battery"/>
+	<prefGroup name="config" order="9" icon="Resources/config-icon.png" title="Configuration"/>
+
+	<preference hidden="true" description="Check this box if you don't want to see the License Conditions again." name="licenceHide" title="Don't Show Licence Again" defaultValue="0" type="checkbox"/>
+	
+	<preference ticks="20" minLength="10" description="Choose the size of the gauges in percent (%)." name="scalePref" maxLength="100" group="general" title="Widget Size:" defaultValue="25" type="slider">
+		<tickLabel>10</tickLabel>
+		<tickLabel>100</tickLabel>
+	</preference>
+	<preference description="Choose the sampling interval in whole seconds. This is how often the performance values are obtained from the system. The smallest interval value is one second." name="timerPref" group="general" title="Sampling Interval:" defaultValue="1" type="popup">
+		<option>1</option>
+		<option>2</option>
+		<option>3</option>
+		<option>4</option>
+		<option>5</option>
+	</preference>
+
+	<preference hidden="false" group="config" description="This changes the direction of the mousewheel. By default forward movement of the scroll wheel increases size." name="mouseWheelPref" defaultvalue = "right" title="Mouse Wheel Direction" type="popup">
+		<option>forward to increase size</option>
+		<optionValue>right</optionValue>
+		<option>backward to increase size</option>
+		<optionValue>left</optionValue>
+	</preference>
+	
+	<preference description="Set whether the cpu gauge pointer uses smooth animation or not. Smooth animation is more costly in cpu cycles so you may want to turn this off to minimise the cpu the monitor uses." name="smoothPref" group="cpugauges" title="Smooth Animation" defaultValue="enabled" type="popup">
+		<option>enabled</option>
+		<option>disabled</option>
+		<option>-</option>
+	</preference>
+	<preference description="Choose the animation interval in milliseconds. Smaller values give smoother animation, but use more cpu cycles." name="animationPref" group="animation" title="Animation Interval" defaultValue="20" type="popup">
+		<option>20</option>
+		<option>40</option>
+		<option>60</option>
+		<option>80</option>
+		<option>100</option>
+		<option>-</option>
+	</preference>
+	
+	<preference description="Set switch to show the cpu utilisation on the main cpu gauge." name="cpuswitchPref" group="cpugauges" title="CPU Gauge:" defaultValue="on" type="popup">
+		<option>on</option>
+		<option>off </option>
+		<option>-</option>
+	</preference>
+	<preference hidden="true" description="If you have a dual core system you may set this switch to show the individual cpu utilisation of core 1 and 2 cpus. This information is taken from the Windows Management Instrumentation system (WMI). There is a slight cpu overhead in extracting this additional information." name="core0and1switchPref" group="cpugauges" title="Dual Core CPU Gauges:" defaultValue="on" type="popup">
+		<option>on</option>
+		<option>off </option>
+		<option>-</option>
+	</preference>
+	<preference hidden="true" description="If you have a quad core non-hyperthreading system you may set this switch to show the individual cpu utilisation of core 3 and 4 cpus. This information is taken from WMI. There is a slight cpu overhead in extracting this additional information." name="core2and3switchPref" group="cpugauges" title="Quad Core CPU Gauges:" defaultValue="on" type="popup">
+		<option>on</option>
+		<option>off </option>
+		<option>-</option>
+	</preference>
+	
+	<preference description="Set switch to enable or disable display of physical memory." name="memswitchPref" group="memory" title="Memory Gauge:" defaultValue="on" type="popup">
+		<option>on</option>
+		<option>off </option>
+		<option>-</option>
+	</preference>
+	<preference description="Set switch to enable or disable display of virtual memory." name="virtswitchPref" group="memory" title="Virtual Memory Gauge:" defaultValue="on" type="popup">
+		<option>on</option>
+		<option>off </option>
+		<option>-</option>
+	</preference>
+	<preference hidden="false" description="Determine whether to display Amps or Virtual Memory on the right hand gauge." name="virtampsPref" group="memory" title="Gauge Display" defaultValue="amps" type="popup">
+		<option>amps</option>
+		<option>virt</option>
+		<option>-</option>
+	</preference>
+	<preference description="Set switch to show the battery charge on the amps gauge." name="battswitchPref" group="battery" title="Battery Gauge:" defaultValue="on" type="popup">
+		<option>on</option>
+		<option>off </option>
+		<option>-</option>
+	</preference>
+
+	<preference description="Set switch to show the sparks above the amps gauge." name="sparkPref" group="battery" title="Charging Spark:" defaultValue="enable" type="popup">
+		<option>enable</option>
+		<option>disable </option>
+		<option>-</option>
+	</preference>
+	
+
+	<preference description="Set whether the network gauge pointer uses smooth animation or not. Smooth animation is more costly in cpu cycles so you may want to turn this off to minimise the cpu the monitor uses." name="networkSmoothPref" group="network" title="Smooth Animation" defaultValue="enabled" type="popup">
+		<option>enabled</option>
+		<option>disabled</option>
+		<option>-</option>
+	</preference>
+
+	<preference description="Set switch to show the Network signal strength on the combined wireless/network gauge and lamp." name="networkswitch" group="network" title="Network Gauge:" defaultValue="on" type="popup">
+		<option>on</option>
+		<option>off </option>
+		<option>-</option>
+	</preference>
+	
+	<preference hidden="false" description="Choose the network device to be monitored."
+		name="devicePref" group="network" title="Network Device:" defaultValue="en1"
+		type="popup">
+		<option>AirPort</option>
+		<optionValue>en0</optionValue>
+		<option>Ethernet</option>
+		<optionValue>en1</optionValue>
+	</preference>
+	
+	<preference hidden="false"
+		description="Estimate the maximum speed of this network device (in Mbps). This setting will be adjusted automatically as the widget runs."
+		name="maxSpeedPref" group="network" title="Maximum Speed:" defaultValue="4"
+		type="popup">
+		<option>1</option>
+		<option>2</option>
+		<option>3</option>
+		<option>4</option>
+		<option>6</option>
+		<option>8</option>
+		<option>12</option>
+		<option>16</option>
+		<option>24</option>
+		<option>32</option>
+		<option>48</option>
+		<option>64</option>
+	</preference>
+	
+	<preference hidden="false"
+		description="Estimate the minimum speed of this network device (in Mbps). Adjust upwards until the green indicator is on most of the time."
+		name="minSpeedPref" group="network" title="Minimum Speed:" defaultValue="3"
+		type="popup">
+		<option>1</option>
+		<optionValue>0</optionValue>
+		<option>2</option>
+		<optionValue>1</optionValue>
+		<option>3</option>
+		<optionValue>2</optionValue>
+		<option>4</option>
+		<optionValue>3</optionValue>
+		<option>6</option>
+		<optionValue>4</optionValue>
+		<option>8</option>
+		<optionValue>5</optionValue>
+		<option>12</option>
+		<optionValue>6</optionValue>
+		<option>16</option>
+		<optionValue>7</optionValue>
+		<option>24</option>
+		<optionValue>8</optionValue>
+		<option>32</option>
+		<optionValue>9</optionValue>
+		<option>48</option>
+		<optionValue>10</optionValue>
+		<option>64</option>
+		<optionValue>11</optionValue>
+	</preference>
+
+	<preference description="Set switch to show the Wireless signal strength on the wireless gauge and lamp." name="wirelessswitch" group="network" title="Wireless Gauge:" defaultValue="on" type="popup">
+		<option>on</option>
+		<option>off </option>
+		<option>-</option>
+	</preference>
+
+	<preference hidden="true" description="Hidden field to store the number of drives to be shown." name="driveCountPref" group="drives" title="Drive Count:" defaultValue="1" type="text"/>
+
+	<preference hidden="false" description="Show unmounted drives. If you have unmounted virtual drives then you can hide them by disabling this option." name="showUnmountedPref" group="drives" title="Unmounted Drive display" defaultValue="enable" type="popup">
+		<option>disable</option>
+		<option>enable</option>
+		<option>-</option>
+	</preference>
+	<preference hidden="false" description="Drive fill threshold (%) beyond which your drives will display a red lamp." name="drivethreshholdPref" group="drives" title="Drive Threshold:" defaultValue="85" type="popup">
+		<option>55</option>
+		<option>60</option>
+		<option>65</option>
+		<option>70</option>
+		<option>75</option>
+		<option>80</option>
+		<option>85</option>
+		<option>90</option>
+		<option>95</option>
+	</preference>
+
+	<preference hidden="false" description="Virtual Memory threshold (%) beyond which the virtual memory gauge will display a red lamp. If the lamp is lit then you need to increase your pagefile..." name="virtmemthresholdPref" group="memory" title="Virtual Memory Threshold:" defaultValue="90" type="popup">
+		<option>00</option>
+		<option>05</option>
+		<option>10</option>
+		<option>15</option>
+		<option>20</option>
+		<option>25</option>
+		<option>30</option>
+		<option>35</option>
+		<option>40</option>
+		<option>45</option>
+		<option>50</option>
+		<option>55</option>
+		<option>60</option>
+		<option>65</option>
+		<option>70</option>
+		<option>75</option>
+		<option>80</option>
+		<option>85</option>
+		<option>90</option>
+		<option>95</option>
+	</preference>
+
+	<preference hidden="false" description="Double-clicking on the gauge will run this command. You may change it to call any utility you desire. The default command for windows is : %SystemRoot%/system32/taskmgr.exe" name="taskmgrCmdPref" group="cpugauges" title="CPU gauge Command:" type="text"/>
+	<preference hidden="false" description="Double-clicking on the core gauges will run this command. The default core command for windows is : %SystemRoot%/system32/perfmon.exe" name="perfmonCmdPref" group="cpugauges" title="CPU Core gauge command:" type="text"/>
+	<preference hidden="false" description="Double-clicking on the gauge will run this command. You may change it to call any utility you desire. The default command for windows is : %SystemRoot%/system32/perfmon.exe" name="wirelessCmdPref" group="network" title="Wireless gauge command:" type="text"/>
+	<preference hidden="false" description="Double-clicking on the gauge will run this command. You may change it to call any utility you desire. The default drives command for windows is : %SystemRoot%/system32/perfmon.exe" name="drivesCmdPref" group="drives" title="Drives gauges Command:" type="text"/>
+	<preference hidden="false" description="Double-clicking on the gauge will run this command. You may change it to call any utility you desire. The default memory command for windows is : %SystemRoot%/system32/perfmon.exe" name="memoryCmdPref" group="memory" title="Memory Gauge Command:" type="text"/>
+	<preference hidden="false" description="Double-clicking on the gauge will run this command. You may change it to call any utility you desire. The default battery command for windows is : %SystemRoot%/system32/perfmon.exe" name="ampsCmdPref" group="battery" title="Battery Gauge Command:" type="text"/>
+	<preference hidden="false" description="The default virtual memory command for windows is : %SystemRoot%/system32/perfmon.exe" name="virtCmdPref" group="memory" title="Virtual Memory Gauge Command:" type="text"/>
+	
+	<preference description="Set switch to enable/mute all sounds." name="soundPref" group="config" title="Sound Control:" defaultValue="enable" type="popup">
+		<option>mute</option>
+		<option>enable</option>
+		<option>-</option>
+	</preference>
+	<preference description="Set switch to turn off tooltips. On Macs the tooltips may flicker due to being reset during each sampling interval. This switch allows you to prevent this behaviour." name="tooltipswitchPref" group="config" title="Tooltips:" defaultValue="enable" type="popup">
+		<option>disable</option>
+		<option>enable</option>
+		<option>-</option>
+	</preference>
+	<preference description="Windows 10 has a fault with WMI that generates an error. This option is here in case the error persists. You won't need to change this option. It is a debug option for development only." name="WMIenabled" group="config" title="Windows 10 WMI:" defaultValue="disabled" type="popup">
+		<option>disabled</option>
+		<option>enabled</option>
+		<option>-</option>
+	</preference>
+	<preference description="Switch to open the drive console and display the widget innards." name="driveconsolePref" group="config" title="Drive Console:" defaultValue="shut" type="popup">
+		<option>open</option>
+		<option>shut</option>
+		<option>-</option>
+	</preference>
+	<preference description="Threshold in % beyond which the battery gauge will raise an alarm." name="ampsThresholdPref" group="battery" title="Battery Threshold:" defaultValue="20" type="popup">
+		<option>00</option>
+		<option>05</option>
+		<option>10</option>
+		<option>15</option>
+		<option>20</option>
+		<option>25</option>
+		<option>30</option>
+		<option>35</option>
+		<option>40</option>
+		<option>45</option>
+		<option>50</option>
+		<option>55</option>
+		<option>60</option>
+		<option>65</option>
+		<option>70</option>
+		<option>75</option>
+		<option>80</option>
+		<option>85</option>
+		<option>90</option>
+		<option>95</option>
+	</preference>
+	
+	<script src="Resources/main.js"/>
+
+
+        <action trigger="onKeyDown">
+              <![CDATA[
+                if (system.event.keyCode==116) {
+                    print("pressing "+system.event.keyCode);
+                    reloadWidget();
+                }
+               ]]>
+        </action>
+
+
+</widget>
